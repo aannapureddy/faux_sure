@@ -29,14 +29,14 @@ def min_length(length: int) -> Callable[[str], bool]:
     Create a MIN length validator
 
     Args:
-        length (int): MIN length (exclusive)
+        length (int): MIN length (inclusive)
 
     Returns:
         Callable[[str], bool]: a function with the name min_length_{length}
     """
 
     def v(_field):
-        return len(_field) > length
+        return len(_field) >= length
 
     v.__name__ = f"min_length_{length}"
     return v
@@ -44,7 +44,7 @@ def min_length(length: int) -> Callable[[str], bool]:
 
 def max_length(length: int) -> Callable[[str], bool]:
     """
-    Create an MAX length validator (exclusive)
+    Create an MAX length validator (inclusive)
 
     Args:
         length (int): MAX length
@@ -54,7 +54,7 @@ def max_length(length: int) -> Callable[[str], bool]:
     """
 
     def v(_field):
-        return len(_field) < length
+        return len(_field) <= length
 
     v.__name__ = f"max_length_{length}"
     return v
@@ -74,7 +74,7 @@ def in_range(_min: Optional[Number] = None, _max: Optional[Number] = None) -> Ca
     """
 
     def v(_field):
-        return _min <= _field <= _max
+        return (_min if _min is not None else _field) <= _field <= (_max if _max is not None else _field)
 
     v.__name__ = f"in_range_{_min}_to_{_max}"
     return v

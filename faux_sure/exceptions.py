@@ -12,3 +12,7 @@ class TypeFieldRequirementException(Exception):
 
 class ValidatorFieldRequirementException(Exception):
     pass
+
+
+class OneToOneException(Exception):
+    pass

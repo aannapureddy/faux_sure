@@ -2,6 +2,9 @@
 Classes for modeling data 
 """
 from __future__ import annotations
+
+import functools
+import pydoc
 import uuid
 
 from collections import defaultdict
@@ -18,6 +21,13 @@ from faux_sure.exceptions import (
 ValidatorType = Callable[[Any], bool]
 
 
+@functools.lru_cache
+def get_type_from_class_name(class_name: Union[str, Type]) -> Type:
+    if isinstance(class_name, Type):
+        return class_name
+    return pydoc.locate(class_name)
+
+
 class Field:
     """
     A field for a model complete with typing and validation
@@ -25,18 +35,22 @@ class Field:
 
     def __init__(
         self,
-        _type: Tuple[Type],
+        _type: Union[Type, str],
         validators: Union[ValidatorType, Iterable[ValidatorType]] = tuple(),
-        unique: bool = False,
+        optional: bool = False,
     ):
         """
         Args:
-            _type (Tuple[T]): Union of acceptable types
+            _type (Type or Str): Appropriate Type. If string instead of type object is passed, lexical cast to type at set time
             validators (Iterable[Callable[[Any] Any]]): Single or Collection of validation functions
-            unique (bool): Whether this value should be unique across all instances of this model in a session
+            optional (bool): Whether this value is allowed to be None and skip the type and validation checks
         """
 
-        self._type: Tuple[Type] = _type
+        if isinstance(_type, str):
+            self.lexical_cast = True
+        else:
+            self.lexical_cast = False
+        self._type = _type
         self.validators: Tuple[ValidatorType] = (
             tuple(validators) if isinstance(validators, Iterable) else (validators,)  # type: ignore
         )
@@ -55,6 +69,11 @@ class Field:
 
     def __set__(self, instance, value):
 
+        if self.lexical_cast:
+            self._type = get_type_from_class_name(self._type)
+
+        if value is None and self.optional is True:
+            pass
         if not isinstance(value, self._type):
             raise TypeFieldRequirementException(
                 f"{self.name!r} values must one of types {self._type!r} not {type(value)}"
@@ -77,6 +96,7 @@ class UniqueTogetherRestraint:
         self.unique_fields: Tuple[str] = (
             tuple(unique_fields) if isinstance(unique_fields, Iterable) else (unique_fields,)  # type: ignore
         )
+
 
 @dataclass
 class Model:
@@ -146,7 +166,7 @@ class Model:
             model (Model): Model with Fields for validation and custom checks
         """
 
-        for _field_name in self.iterate_model_fields:
+        for _field_name in self.iterate_model_fields():
             if getattr(self, _field_name) is None:
                 setattr(self, _field_name, None)  # trigger __set__ checks
         self.checks()
@@ -252,7 +272,7 @@ class Session:
                     )
 
     @classmethod
-    def close(cls):
+    def reset(cls):
         """
         Clear contents and restart
         """
@@ -262,4 +282,4 @@ class Session:
         return self
 
     def __close__(self, *args):
-        self.close()
+        self.reset()
