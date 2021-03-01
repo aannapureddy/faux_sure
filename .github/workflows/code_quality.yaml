@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Mypy
+    name: CodeQuality
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
@@ -15,6 +15,7 @@ jobs:
     - name: Install Dependencies
       run: |
         pip install -r requirements.txt
+        pip install black
     - name: mypy
       run: |
         mypy faux_sure
