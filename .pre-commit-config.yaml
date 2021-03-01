@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 20.8b1
+    hooks:
+      - id: black
+
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Check example tests
+        entry: pipenv run pytest
+        pass_filenames: false
+        language: system
+        types: [python]
+      - id: mypy
+        name: Check typing
+        entry: pipenv run mypy . --ignore-missing-imports
+        pass_filenames: false
+        language: system
+        types: [python]
+
