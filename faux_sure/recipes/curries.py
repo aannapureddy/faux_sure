@@ -16,8 +16,10 @@ def exact_length(length: int) -> Callable[[str], bool]:
     Returns:
         Callable[[str], bool]: a function with the name exact_length_{length}
     """
+
     def v(_field):
         return len(_field) == length
+
     v.__name__ = f"exact_length_{length}"
     return v
 
@@ -32,8 +34,10 @@ def min_length(length: int) -> Callable[[str], bool]:
     Returns:
         Callable[[str], bool]: a function with the name min_length_{length}
     """
+
     def v(_field):
         return len(_field) > length
+
     v.__name__ = f"min_length_{length}"
     return v
 
@@ -48,8 +52,10 @@ def max_length(length: int) -> Callable[[str], bool]:
     Returns:
         Callable[[str], bool]: a function with the name exact_length_{length}
     """
+
     def v(_field):
         return len(_field) < length
+
     v.__name__ = f"max_length_{length}"
     return v
 
@@ -66,8 +72,9 @@ def in_range(_min: Optional[Number] = None, _max: Optional[Number] = None) -> Ca
     Returns:
         Callable[[Number], bool]: a function with the name in_range_{}_to_{}
     """
-    
+
     def v(_field):
         return _min <= _field <= _max
+
     v.__name__ = f"in_range_{_min}_to_{_max}"
     return v
