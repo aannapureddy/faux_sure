@@ -9,7 +9,7 @@ import uuid
 
 from collections import defaultdict
 from dataclasses import dataclass, field as dataclass_field, fields as list_dataclass_fields
-from typing import Any, Callable, Dict, Iterable, Optional, Type, Tuple, Union, Set, Generator
+from typing import Any, Callable, Dict, Iterable, Optional, Type, Tuple, Union, Set, Generator, no_type_check
 
 from faux_sure.exceptions import (
     ModelNotFoundError,
@@ -21,6 +21,7 @@ from faux_sure.exceptions import (
 ValidatorType = Callable[[Any], bool]
 
 
+@no_type_check
 @functools.lru_cache
 def get_type_from_class_name(class_name: Union[str, Type]) -> Type:
     if isinstance(class_name, Type):

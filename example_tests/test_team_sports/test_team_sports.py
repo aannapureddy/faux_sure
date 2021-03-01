@@ -124,7 +124,7 @@ LIST_OF_NAMES = [
     ("Johnny", "Silverhands"),
     ("Cool", "Luke"),
     ("Smellya", "Later"),
-    ("Jame", ("Bigguy")),
+    ("Jame", "Bigguy"),
     ("Kobe", "Rip"),
 ]
 
