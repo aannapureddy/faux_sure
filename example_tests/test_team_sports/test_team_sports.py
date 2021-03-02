@@ -145,11 +145,39 @@ def test_rule_repl_feedback():
         ace.age = 13
 
 
-def test_good_single_team():
+def test_team_name():
+    wolves = Team()
+    with pytest.raises(ValidatorFieldRequirementException, match="max_length"):
+        wolves.team_name = """
+        Ipso hydrogen: In an electrophilic aromatic substitution reaction,
+        the hydrogen bonded to the arenium ion carbon that is the site of attack 
+        by the incoming electrophile. In a traditional electrophilic aromatic substitution reaction, 
+        the ipso hydrogen is the hydrogen replaced by the new substituent (from the attacking electrophile) in the final product.
+        """
+    assert wolves.team_name is None
+    with pytest.raises(ValidatorFieldRequirementException, match="min_length"):
+        wolves.team_name = "wolf"
+    assert wolves.team_name is None
+    wolves.team_name = "wolves"
+    assert wolves.team_name == "wolves"
 
-    not_db.Session.reset()
 
-    wolves = Team("Wolves")
+def test_missing_team():
+
+    ace = Player()
+    ace.first_name = "Ace"
+    ace.last_name = "Ventura"
+    ace.age = 17
+    ace.is_captain = True
+    ace.is_main = True
+    ace.jersey_number = 12
+    with pytest.raises(TypeFieldRequirementException, match="'team' values must one of types"):
+        ace.validate()
+
+
+def test_object_references():
+    wolves = Team()
+    wolves.team_name = "wolves"
     ace = Player()
     ace.first_name = "Ace"
     ace.last_name = "Ventura"
@@ -157,7 +185,36 @@ def test_good_single_team():
     ace.is_captain = True
     ace.is_main = True
     ace.team = wolves
-    ace.jersey = 12
+    ace.jersey_number = 12
+    wolves.captain = ace
+    not_db.Session.add(ace)
+    not_db.Session.add(wolves)
+
+    assert wolves.captain == ace
+    assert wolves.captain.team == wolves
+    wolves.team_name = "Jaguars"
+    assert ace.team.team_name == "Jaguars"
+    ace.last_name = "Smomo"
+    assert wolves.captain.last_name == "Smomo"
+
+    team_reference = next(not_db.Session.query_by_type_name("Team"))
+    assert team_reference.team_name == "Jaguars"
+
+
+def test_good_single_team():
+
+    not_db.Session.reset()
+
+    wolves = Team()
+    wolves.team_name = "wolves"
+    ace = Player()
+    ace.first_name = "Ace"
+    ace.last_name = "Ventura"
+    ace.age = 17
+    ace.is_captain = True
+    ace.is_main = True
+    ace.team = wolves
+    ace.jersey_number = 12
     wolves.captain = ace
     not_db.Session.add(ace)
     not_db.Session.add(wolves)

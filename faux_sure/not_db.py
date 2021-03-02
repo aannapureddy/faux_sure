@@ -55,6 +55,7 @@ class Field:
         self.validators: Tuple[ValidatorType] = (
             tuple(validators) if isinstance(validators, Iterable) else (validators,)  # type: ignore
         )
+        self.optional = optional
         self.name: Optional[str]
 
     def __set_name__(self, owner, name):
@@ -72,10 +73,11 @@ class Field:
 
         if self.lexical_cast:
             self._type = get_type_from_class_name(self._type)
+            self.lexical_cast = False
 
         if value is None and self.optional is True:
             pass
-        if not isinstance(value, self._type):
+        elif not isinstance(value, self._type):
             raise TypeFieldRequirementException(
                 f"{self.name!r} values must one of types {self._type!r} not {type(value)}"
             )
@@ -137,7 +139,7 @@ class Model:
         """
         Iterate over all attributes of type Field defined for the class
         """
-        for _field in self.__dict__.values():
+        for _field in vars(self.__class__).values():
             if isinstance(_field, Field):
                 yield _field.name
 
@@ -168,6 +170,7 @@ class Model:
         """
 
         for _field_name in self.iterate_model_fields():
+            print(_field_name)
             if getattr(self, _field_name) is None:
                 setattr(self, _field_name, None)  # trigger __set__ checks
         self.checks()

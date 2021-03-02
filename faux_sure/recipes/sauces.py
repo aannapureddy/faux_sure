@@ -8,7 +8,7 @@ from faux_sure.exceptions import OneToOneException
 
 def one_to_one(from_model: Model, from_field: str, to_model: Model, to_field: str) -> bool:
     """
-    Create an EXACT length validator
+    Create a validator that enforces a One to One field
 
     Args:
         from_model (Model): First model

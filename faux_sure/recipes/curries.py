@@ -72,6 +72,8 @@ def in_range(_min: Optional[Number] = None, _max: Optional[Number] = None) -> Ca
     Returns:
         Callable[[Number], bool]: a function with the name in_range_{}_to_{}
     """
+    if _min is None and _max is None:
+        raise ValueError("Either min or max must be supplied")
 
     def v(_field):
         return (_min if _min is not None else _field) <= _field <= (_max if _max is not None else _field)

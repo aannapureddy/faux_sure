@@ -9,14 +9,14 @@ repos:
     hooks:
       - id: pytest
         name: Check example tests
-        entry: pipenv run pytest
+        entry: pytest
         pass_filenames: false
         language: system
         types: [python]
       - id: mypy
         name: Check typing
-        entry: pipenv run mypy . --ignore-missing-imports
+        entry: mypy faux_sure
         pass_filenames: false
         language: system
         types: [python]
-
+  
