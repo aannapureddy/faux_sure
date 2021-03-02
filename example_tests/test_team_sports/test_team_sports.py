@@ -22,7 +22,7 @@ In this league, a team must have a unique name less than 50 characters but more 
 import pytest
 
 from faux_sure import not_db
-from faux_sure.exceptions import TypeFieldRequirementException, ValidatorFieldRequirementException
+from faux_sure.exceptions import OneToOneException, TypeFieldRequirementException, ValidatorFieldRequirementException
 from faux_sure.recipes.curries import in_range, max_length, min_length
 from faux_sure.recipes.sauces import one_to_one
 
@@ -54,7 +54,7 @@ class LeagueRules:
         team_players = [player for player in all_players if player.team == team]
         unique_jerseys = {player.jersey_number for player in team_players}
         if not len(team_players) == len(unique_jerseys):
-            raise LeagueRulesException(f"Not all Players on {team} have a unique number")
+            raise LeagueRulesException(f"Not all Players on {team.team_name} have a unique number")
         return True
 
     @staticmethod
@@ -63,7 +63,7 @@ class LeagueRules:
         all_players = not_db.Session.query_by_type_name("Player")
         team_captain = [player for player in all_players if player.team == team and player.is_captain]
         if not len(team_captain) == 1:
-            LeagueRulesException(f"{team} has {team_captain} captains")
+            raise LeagueRulesException(f"{team.team_name} has {team_captain} captains")
         return True
 
     @staticmethod
@@ -73,8 +73,11 @@ class LeagueRules:
         all_players = not_db.Session.query_by_type_name("Player")
         for player in all_players:
             player_types[player.is_main] += 1
-        if player_types[True] != 5 and player_types[False] > 4:
-            LeagueRulesException(f"{team} has {player_types[True]} main players and {player_types[False]} subs")
+        if player_types[True] != 5 or player_types[False] > 4:
+            raise LeagueRulesException(
+                f"{team.team_name} has {player_types[True]} main players and {player_types[False]} subs"
+            )
+        return True
 
 
 class Person(not_db.Model):
@@ -102,6 +105,9 @@ class Coach(Person):
 
     age = not_db.Field(int, in_range(25, None))
     team = not_db.Field(class_name("Team"))
+
+    def checks(self):
+        one_to_one(self, "team", self.team, "coach")
 
 
 class Team(not_db.Model):
@@ -132,6 +138,8 @@ LIST_OF_NAMES = [
 def test_type_repl_feedback():
     """Immediately assert error when an incorrect type is set"""
 
+    not_db.Session.reset()
+
     ace = Player()
     with pytest.raises(TypeFieldRequirementException):
         ace.age = "13"
@@ -140,19 +148,38 @@ def test_type_repl_feedback():
 def test_rule_repl_feedback():
     """Immediately assert error when an invalid value is set"""
 
+    not_db.Session.reset()
+
     ace = Player()
     with pytest.raises(ValidatorFieldRequirementException, match="age failed to validate in_range_14_to_19"):
         ace.age = 13
 
 
+def test_rule_repl_retry():
+    """When you fall down, get back up again"""
+
+    not_db.Session.reset()
+
+    ace = Player()
+    with pytest.raises(ValidatorFieldRequirementException, match="age failed to validate in_range_14_to_19"):
+        ace.age = 13
+    ace.age = 15
+    assert ace.age == 15
+    with pytest.raises(ValidatorFieldRequirementException, match="age failed to validate in_range_14_to_19"):
+        ace.age = 13
+    assert ace.age == 15
+
+
 def test_team_name():
+
+    not_db.Session.reset()
+
     wolves = Team()
     with pytest.raises(ValidatorFieldRequirementException, match="max_length"):
         wolves.team_name = """
-        Ipso hydrogen: In an electrophilic aromatic substitution reaction,
+        In an electrophilic aromatic substitution reaction,
         the hydrogen bonded to the arenium ion carbon that is the site of attack 
-        by the incoming electrophile. In a traditional electrophilic aromatic substitution reaction, 
-        the ipso hydrogen is the hydrogen replaced by the new substituent (from the attacking electrophile) in the final product.
+        by the incoming electrophile.
         """
     assert wolves.team_name is None
     with pytest.raises(ValidatorFieldRequirementException, match="min_length"):
@@ -163,6 +190,8 @@ def test_team_name():
 
 
 def test_missing_team():
+
+    not_db.Session.reset()
 
     ace = Player()
     ace.first_name = "Ace"
@@ -175,7 +204,29 @@ def test_missing_team():
         ace.validate()
 
 
+def test_fix_captain_status():
+
+    wolves = Team()
+    wolves.team_name = "wolves"
+    ace = Player()
+    ace.first_name = "Ace"
+    ace.last_name = "Ventura"
+    ace.age = 17
+    ace.is_main = True
+    ace.team = wolves
+    ace.jersey_number = 12
+
+    with pytest.raises(ValidatorFieldRequirementException, match="is_captain"):
+        wolves.captain = ace
+    ace.is_captain = True
+    wolves.captain = ace
+    assert wolves.captain == ace
+
+
 def test_object_references():
+
+    not_db.Session.reset()
+
     wolves = Team()
     wolves.team_name = "wolves"
     ace = Player()
@@ -242,3 +293,175 @@ def test_good_single_team():
     assert len(list(not_db.Session.query_by_type_name("Player"))) == 6
     assert len(list(not_db.Session.query_by_type_name("Team"))) == 1
     assert len(list(not_db.Session.query_by_type_name("Coach"))) == 1
+
+
+def test_unique_name_fail():
+
+    not_db.Session.reset()
+
+    wolves = Team()
+    wolves.team_name = "wolves"
+    ace = Player()
+    ace.first_name = "Ace"
+    ace.last_name = "Ventura"
+    ace.age = 17
+    ace.is_captain = True
+    ace.is_main = True
+    ace.team = wolves
+    ace.jersey_number = 12
+    wolves.captain = ace
+    not_db.Session.add(ace)
+    not_db.Session.add(wolves)
+
+    other_members = (Player() for _ in range(5))
+    for pos, member in enumerate(other_members):
+        member.first_name = LIST_OF_NAMES[pos][0]
+        member.last_name = LIST_OF_NAMES[pos][1]
+        member.age = 17
+        member.is_main = pos < 4
+        member.team = wolves
+        member.jersey_number = 27 + pos ** 2
+        not_db.Session.add(member)
+    member.first_name = "Ace"
+    member.last_name = "Ventura"
+
+    coach = Coach()
+    coach.first_name = "Coach"
+    coach.last_name = "Mann"
+    coach.age = 46
+    coach.team = wolves
+    wolves.coach = coach
+    not_db.Session.add(coach)
+
+    with pytest.raises(not_db.UniqueFieldRequirementException):
+        not_db.Session.commit()
+
+
+def test_fail_one_to_one_validation():
+
+    not_db.Session.reset()
+
+    wolves = Team()
+    wolves.team_name = "wolves"
+    ace = Player()
+    ace.first_name = "Ace"
+    ace.last_name = "Ventura"
+    ace.age = 17
+    ace.is_captain = True
+    ace.is_main = True
+    ace.team = wolves
+    ace.jersey_number = 12
+    wolves.captain = ace
+    not_db.Session.add(ace)
+    not_db.Session.add(wolves)
+
+    other_members = (Player() for _ in range(5))
+    for pos, member in enumerate(other_members):
+        member.first_name = LIST_OF_NAMES[pos][0]
+        member.last_name = LIST_OF_NAMES[pos][1]
+        member.age = 17
+        member.is_main = pos < 4
+        member.team = wolves
+        member.jersey_number = 27 + pos ** 2
+        not_db.Session.add(member)
+
+    coach = Coach()
+    coach.first_name = "Coach"
+    coach.last_name = "Mann"
+    coach.age = 46
+    coach.team = wolves
+
+    fake_coach = Coach()
+    fake_coach.first_name = "Coach"
+    fake_coach.last_name = "Flynn"
+    fake_coach.age = 32
+    fake_coach.team = wolves
+
+    wolves.coach = fake_coach
+    not_db.Session.add(coach)
+    not_db.Session.add(fake_coach)
+
+    with pytest.raises(OneToOneException):
+        not_db.Session.commit()
+
+
+def test_too_many_main_players():
+
+    not_db.Session.reset()
+
+    wolves = Team()
+    wolves.team_name = "wolves"
+    ace = Player()
+    ace.first_name = "Ace"
+    ace.last_name = "Ventura"
+    ace.age = 17
+    ace.is_captain = True
+    ace.is_main = True
+    ace.team = wolves
+    ace.jersey_number = 12
+    wolves.captain = ace
+    not_db.Session.add(ace)
+    not_db.Session.add(wolves)
+
+    other_members = (Player() for _ in range(5))
+    for pos, member in enumerate(other_members):
+        member.first_name = LIST_OF_NAMES[pos][0]
+        member.last_name = LIST_OF_NAMES[pos][1]
+        member.age = 17
+        member.is_main = True
+        member.team = wolves
+        member.jersey_number = 27 + pos ** 2
+        not_db.Session.add(member)
+
+    coach = Coach()
+    coach.first_name = "Coach"
+    coach.last_name = "Mann"
+    coach.age = 46
+    coach.team = wolves
+    wolves.coach = coach
+    not_db.Session.add(coach)
+
+    with pytest.raises(LeagueRulesException, match="6 main players and 0 subs"):
+        not_db.Session.commit()
+
+
+def test_duplicate_jersey_in_team():
+
+    not_db.Session.reset()
+
+    wolves = Team()
+    wolves.team_name = "wolves"
+    ace = Player()
+    ace.first_name = "Ace"
+    ace.last_name = "Ventura"
+    ace.age = 17
+    ace.is_captain = True
+    ace.is_main = True
+    ace.team = wolves
+    ace.jersey_number = 12
+    wolves.captain = ace
+    not_db.Session.add(ace)
+    not_db.Session.add(wolves)
+
+    other_members = (Player() for _ in range(5))
+    for pos, member in enumerate(other_members):
+        member.first_name = LIST_OF_NAMES[pos][0]
+        member.last_name = LIST_OF_NAMES[pos][1]
+        member.age = 17
+        member.is_main = True
+        member.team = wolves
+        member.jersey_number = 27 + pos ** 2
+        not_db.Session.add(member)
+    member.jersey_number = 12
+    member.is_main = False
+
+    coach = Coach()
+    coach.first_name = "Coach"
+    coach.last_name = "Mann"
+    coach.age = 46
+    coach.team = wolves
+    wolves.coach = coach
+    not_db.Session.add(coach)
+
+    with pytest.raises(LeagueRulesException, match="Not all Players on wolves have a unique number"):
+        not_db.Session.commit()

@@ -97,7 +97,7 @@ class UniqueTogetherRestraint:
         if not unique_fields:
             raise ValueError("Fields must be supplied for unique constraint")
         self.unique_fields: Tuple[str] = (
-            tuple(unique_fields) if isinstance(unique_fields, Iterable) else (unique_fields,)  # type: ignore
+            (unique_fields,) if isinstance(unique_fields, str) else tuple(unique_fields)  # type: ignore
         )
 
 
@@ -150,7 +150,7 @@ class Model:
         Raises Attribute Exception if field does not exist on Model
         """
         unique_constraints = (
-            c_field for c_field in self.__dict__.values() if isinstance(c_field, UniqueTogetherRestraint)
+            c_field for c_field in vars(self.__class__).values() if isinstance(c_field, UniqueTogetherRestraint)
         )
         for constraint in unique_constraints:
             values = (getattr(self, value) for value in constraint.unique_fields)
@@ -170,7 +170,6 @@ class Model:
         """
 
         for _field_name in self.iterate_model_fields():
-            print(_field_name)
             if getattr(self, _field_name) is None:
                 setattr(self, _field_name, None)  # trigger __set__ checks
         self.checks()
