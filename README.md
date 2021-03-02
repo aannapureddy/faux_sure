@@ -2,6 +2,11 @@
 Faux Sure provides a heavily typed system with immediate validation checks to provide a tactile experience while exploring complex domain logic.
 Faux Sure is designed for use in a python shell, a notebook, or a short script. The self evaluating Fields system triggers everytime you set an attribute on a model, giving you guardrails while you play around with data. All while encapsulating logic in the Model definition itself
  
+### Current Development:
+- This package is still in its infancy see below for current issues
+- Github Issues is used for reporting both Bugs and requesting Features
+- Current development is limiting the traceback printout to a single line
+
 
 ### An Example:
 ```
