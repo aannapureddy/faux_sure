@@ -91,8 +91,7 @@ Out[12]: 17
 
 ## Installation
 ```
-git clone https://github.com/aannapureddy/faux_sure
-pip install {path/to/faux_sure}
+pip install faux-sure==0.0.1
 ```
 
 ### Issues and Contributing:
