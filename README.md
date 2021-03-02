@@ -8,7 +8,9 @@ Faux Sure is designed for use in a python shell, a notebook, or a short script. 
 - Current development is limiting the traceback printout to a single line
 
 
-### An Example:
+### Examples:
+
+#### See [The Intramural Sports League Story Test](https://github.com/aannapureddy/faux_sure/blob/main/example_tests/test_team_sports/test_team_sports.py)
 ```
 In [5]: from faux_sure import not_db
 
