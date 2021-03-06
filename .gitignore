@@ -16,3 +16,4 @@ dist
 faux_sure.egg-info/*
 
 build/lib/example_tests/__init__.py
+*.ipynb
