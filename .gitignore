@@ -1,4 +1,18 @@
+# IDE
 .idea
 .vscode
+
+# env
 venv
+test_venv*
+
+# python
 *.pyc
+
+#build
+build/*
+build/lib
+dist
+faux_sure.egg-info/*
+
+build/lib/example_tests/__init__.py
