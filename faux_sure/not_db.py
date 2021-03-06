@@ -114,7 +114,7 @@ class Model:
         return str(self.__class__.__name__)
 
     def __deepcopy__(self, memodict={}):
-        """Override full deepcopy. Never duplicate internal key. Preserve unset Fields"""
+        """Never duplicate internal key. Preserve unset Fields"""
         _dcopy = self.__class__()
         fields = {f.name for f in list_dataclass_fields(self)}
         fields.remove("pk")
