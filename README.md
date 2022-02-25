@@ -1,6 +1,6 @@
-## Faux Sure: The REPL object manager for ProtoTyping domain logic with objects and relations. For Python.
-Faux Sure provides a heavily typed system with immediate validation checks to provide a tactile experience while exploring complex domain logic.
-Faux Sure is designed for use in a python shell, a notebook, or a short script. The self evaluating Fields system triggers everytime you set an attribute on a model, giving you guardrails while you play around with data. All while encapsulating logic in the Model definition itself
+## Faux Sures: The REPL object manager for ProtoTyping domain logic with objects and relations. For Python.
+Faux Sures provides a heavily typed system with immediate validation checks to provide a tactile experience while exploring complex domain logic.
+Faux Sures is designed for use in a python shell, a notebook, or a short script. The self evaluating Fields system triggers everytime you set an attribute on a model, giving you guardrails while you play around with data. All while encapsulating logic in the Model definition itself
  
 ### Current Development:
 - This package is still in its infancy see below for current issues
@@ -12,9 +12,9 @@ Faux Sure is designed for use in a python shell, a notebook, or a short script. 
 
 #### See [The Intramural Sports League Story Test](https://github.com/aannapureddy/faux_sure/blob/main/example_tests/test_team_sports/test_team_sports.py)
 ```
-In [5]: from faux_sure import not_db
+In [5]: from faux_sures import not_db
 
-In [6]: from faux_sure.recipes.curries import in_range
+In [6]: from faux_sures.recipes.curries import in_range
 
 In [7]: class Student(not_db.Model):
    ...:     first_name = not_db.Field(str)
@@ -32,7 +32,7 @@ TypeFieldRequirementException             Traceback (most recent call last)
 <ipython-input-9-0a7edcc14936> in <module>
 ----> 1 arjun.age = "13"
 
-~/Documents/code/faux_sure/faux_sure/not_db.py in __set__(self, instance, value)
+~/Documents/code/faux_sures/faux_sures/not_db.py in __set__(self, instance, value)
      79             pass
      80         elif not isinstance(value, self._type):
 ---> 81             raise TypeFieldRequirementException(
@@ -47,7 +47,7 @@ ValidatorFieldRequirementException        Traceback (most recent call last)
 <ipython-input-10-65acbd50e86f> in <module>
 ----> 1 arjun.age = 13
 
-~/Documents/code/faux_sure/faux_sure/not_db.py in __set__(self, instance, value)
+~/Documents/code/faux_sures/faux_sures/not_db.py in __set__(self, instance, value)
      85             for validator in self.validators:
      86                 if validator(value) is False:
 ---> 87                     raise ValidatorFieldRequirementException(f"{self.name} failed to validate {validator.__name__}")
