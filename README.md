@@ -91,7 +91,7 @@ Out[12]: 17
 
 ## Installation
 ```
-pip install faux-sure==0.0.1
+pip install faux-sures==0.0.1
 ```
 
 ### Issues and Contributing:
