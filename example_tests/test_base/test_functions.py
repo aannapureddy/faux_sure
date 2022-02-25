@@ -5,8 +5,8 @@ import pytest
 
 from numbers import Number
 
-from faux_sure.recipes.curries import max_length, min_length, exact_length, in_range
-from faux_sure.not_db import Field, ValidatorFieldRequirementException
+from faux_sures.recipes.curries import max_length, min_length, exact_length, in_range
+from faux_sures.not_db import Field, ValidatorFieldRequirementException
 
 
 @pytest.mark.parametrize("bound", [0, 1, 10, 50])

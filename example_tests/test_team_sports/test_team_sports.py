@@ -21,10 +21,10 @@ In this league, a team must have a unique name less than 50 characters but more 
 
 import pytest
 
-from faux_sure import not_db
-from faux_sure.exceptions import OneToOneException, TypeFieldRequirementException, ValidatorFieldRequirementException
-from faux_sure.recipes.curries import in_range, max_length, min_length
-from faux_sure.recipes.sauces import one_to_one
+from faux_sures import not_db
+from faux_sures.exceptions import OneToOneException, TypeFieldRequirementException, ValidatorFieldRequirementException
+from faux_sures.recipes.curries import in_range, max_length, min_length
+from faux_sures.recipes.sauces import one_to_one
 
 CURRENT_SCOPE = "example_tests.test_team_sports.test_team_sports"
 

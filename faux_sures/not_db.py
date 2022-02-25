@@ -11,7 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field as dataclass_field, fields as list_dataclass_fields
 from typing import Any, Callable, Dict, Iterable, Optional, Type, Tuple, Union, Set, Generator, no_type_check
 
-from faux_sure.exceptions import (
+from faux_sures.exceptions import (
     ModelNotFoundError,
     TypeFieldRequirementException,
     UniqueFieldRequirementException,

@@ -2,8 +2,8 @@
 Validation Functions that help mesh relations
 """
 
-from faux_sure.not_db import Model
-from faux_sure.exceptions import OneToOneException
+from faux_sures.not_db import Model
+from faux_sures.exceptions import OneToOneException
 
 
 def one_to_one(from_model: Model, from_field: str, to_model: Model, to_field: str) -> bool:
